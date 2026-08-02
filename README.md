@@ -1,6 +1,6 @@
-# Backend - Ejemplo Base
+# Backend - Plataforma de Eventos
 
-Proyecto backend desarrollado con Node.js, Express y MongoDB para el curso de Backend II.
+Proyecto backend desarrollado con Node.js, Express y MongoDB para la plataforma de eventos.
 
 ## Tecnologías
 
@@ -34,16 +34,35 @@ npm run dev
 
 El servidor queda disponible en `http://localhost:8080`.
 
-## Estructura principal
+## Estructura del proyecto
 
 ```text
 src/
-├── config/        # conexión a la base de datos y configuración de la app
-├── controllers/   # lógica de las rutas
-├── models/        # modelos de Mongoose
-├── routes/        # endpoints de la API
-├── services/      # lógica de negocio
-├── utils/         # utilidades
+├── config/
+│   ├── app.js
+│   ├── database.js
+│   └── passport.config.js
+├── controllers/
+│   ├── events.controller.js
+│   ├── sessions.controller.js
+│   └── users.controller.js
+├── dao/
+│   ├── events.dao.js
+│   └── users.dao.js
+├── models/
+│   ├── event.model.js
+│   └── user.model.js
+├── repositories/
+│   ├── events.repository.js
+│   └── users.repository.js
+├── routes/
+│   ├── events.routes.js
+│   └── users.routes.js
+├── services/
+│   ├── events.service.js
+│   └── sessions.service.js
+└── utils/
+    └── errors.js
 ```
 
 ## Rutas de ejemplo

@@ -4,25 +4,16 @@ const userSchema = new mongoose.Schema(
   {
     first_name: {
       type: String,
-      required: true,
-      trim: true
+      required: true
     },
     last_name: {
       type: String,
-      default: '',
-      trim: true
-    },
-    username: {
-      type: String,
-      default: '',
-      trim: true
+      required: true
     },
     email: {
       type: String,
       required: true,
-      unique: true,
-      lowercase: true,
-      trim: true
+      unique: true
     },
     password: {
       type: String,
@@ -30,8 +21,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'organizer', 'admin'],
-      default: 'user'
+      default: 'user', // 'user' , 'organizer' , 'admin'
     }
   },
   {
@@ -39,6 +29,4 @@ const userSchema = new mongoose.Schema(
   }
 )
 
-const User = mongoose.model('User', userSchema)
-
-export default User
+export const UserModel = mongoose.model('User', userSchema)
