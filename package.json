@@ -1,15 +1,16 @@
 {
-  "name": "backend_77045_lun",
+  "name": "odilen-backend2",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon app.js"
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Odilen González",
   "license": "ISC",
-  "description": "",
+  "description": "API REST para una plataforma de eventos e inscripciones",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
