@@ -1,6 +1,8 @@
 # Backend - Plataforma de Eventos
 
-Proyecto backend desarrollado con Node.js, Express y MongoDB para una plataforma de gestión de eventos.
+Proyecto backend desarrollado con Node.js, Express y MongoDB para una plataforma de gestión de eventos e inscripciones.
+
+Actualmente, el proyecto permite administrar eventos y registrar usuarios de manera segura mediante validación de datos, normalización del correo electrónico y cifrado de contraseñas.
 
 ## Tecnologías utilizadas
 
@@ -8,6 +10,7 @@ Proyecto backend desarrollado con Node.js, Express y MongoDB para una plataforma
 - Express
 - MongoDB
 - Mongoose
+- bcrypt
 - dotenv
 - nodemon
 
@@ -77,12 +80,31 @@ src/
 │   ├── sessions.routes.js
 │   └── users.routes.js
 ├── services/
-│   └── events.service.js
+│   ├── events.service.js
+│   └── sessions.service.js
 ├── utils/
-│   └── errors.js
+│   ├── errors.js
+│   └── hash.js
 ├── app.js
 └── server.js
 ```
+
+## Arquitectura
+
+El proyecto utiliza una arquitectura organizada por capas:
+
+```text
+Ruta → Controller → Service → Repository → DAO → Modelo
+```
+
+Cada capa tiene una responsabilidad específica:
+
+- **Ruta:** define el endpoint y lo conecta con su controlador.
+- **Controller:** recibe la solicitud y genera la respuesta HTTP.
+- **Service:** contiene las reglas y la lógica de negocio.
+- **Repository:** conecta el servicio con la capa de acceso a datos.
+- **DAO:** ejecuta las operaciones sobre la base de datos.
+- **Modelo:** define la estructura de los documentos de MongoDB.
 
 ## Endpoints disponibles
 
@@ -98,6 +120,123 @@ Respuesta esperada:
 {
   "status": "ok",
   "message": "Servidor activo"
+}
+```
+
+### Comprobar la ruta de sesiones
+
+```http
+GET /api/sessions
+```
+
+Respuesta esperada:
+
+```json
+{
+  "status": "success",
+  "message": "Ruta de sesiones disponible"
+}
+```
+
+### Registrar un usuario
+
+```http
+POST /api/sessions/register
+```
+
+Este endpoint permite registrar usuarios de manera segura en MongoDB.
+
+#### Campos esperados
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `first_name` | String | Sí | Nombre del usuario |
+| `last_name` | String | Sí | Apellido del usuario |
+| `email` | String | Sí | Correo electrónico válido |
+| `password` | String | Sí | Contraseña de al menos 8 caracteres |
+
+El campo `role` no se acepta desde el registro público. Todos los usuarios registrados mediante este endpoint se crean automáticamente con el rol `user`.
+
+#### Ejemplo de solicitud
+
+```json
+{
+  "first_name": "Ana",
+  "last_name": "Pérez",
+  "email": "Ana@Mail.com ",
+  "password": "Secreta123"
+}
+```
+
+Antes de guardar el usuario:
+
+- Se comprueba que todos los campos obligatorios estén presentes.
+- Se valida el formato del correo electrónico.
+- El correo se normaliza utilizando `trim()` y `toLowerCase()`.
+- Se comprueba que el correo no esté registrado.
+- La contraseña se cifra utilizando `bcrypt`.
+- El rol se establece siempre como `user`.
+
+#### Respuesta exitosa
+
+Código HTTP: `201 Created`
+
+```json
+{
+  "status": "success",
+  "payload": {
+    "id": "665f2a...",
+    "first_name": "Ana",
+    "last_name": "Pérez",
+    "email": "ana@mail.com",
+    "role": "user"
+  }
+}
+```
+
+La contraseña nunca se devuelve en la respuesta, ni en texto plano ni cifrada.
+
+#### Campos faltantes
+
+Código HTTP: `400 Bad Request`
+
+```json
+{
+  "status": "error",
+  "message": "Faltan campos obligatorios"
+}
+```
+
+#### Email con formato inválido
+
+Código HTTP: `400 Bad Request`
+
+```json
+{
+  "status": "error",
+  "message": "El formato del email no es válido"
+}
+```
+
+#### Contraseña demasiado corta
+
+Código HTTP: `400 Bad Request`
+
+```json
+{
+  "status": "error",
+  "message": "La contraseña debe tener al menos 8 caracteres"
+}
+```
+
+#### Email ya registrado
+
+Código HTTP: `409 Conflict`
+
+```json
+{
+  "status": "error",
+  "message": "El email ya está registrado"
 }
 ```
 
@@ -142,20 +281,54 @@ Los siguientes campos son obligatorios:
 - `location`
 - `organizerEmail`
 
-### Comprobar la ruta de sesiones
+## Seguridad del registro
 
-```http
-GET /api/sessions
+Las contraseñas se cifran utilizando `bcrypt` antes de almacenarse en MongoDB.
+
+El helper reutilizable encargado del cifrado se encuentra en:
+
+```text
+src/utils/hash.js
 ```
 
-Respuesta esperada:
+El sistema también garantiza que:
+
+- Las contraseñas no se almacenan en texto plano.
+- Las contraseñas no se incluyen en las respuestas.
+- Los correos duplicados son rechazados.
+- El rol no puede manipularse desde el body del registro público.
+- Solo se permiten los roles `user`, `organizer` y `admin`.
+- El registro público asigna siempre el rol `user`.
+
+## Prueba del registro con Postman
+
+Configurar una solicitud con los siguientes datos:
+
+```text
+Método: POST
+URL: http://localhost:8080/api/sessions/register
+Body: raw
+Formato: JSON
+```
+
+Utilizar como ejemplo:
 
 ```json
 {
-  "status": "success",
-  "message": "Ruta de sesiones disponible"
+  "first_name": "Ana",
+  "last_name": "Pérez",
+  "email": "Ana@Mail.com ",
+  "password": "Secreta123"
 }
 ```
+
+Después del registro, se recomienda comprobar en MongoDB que el campo `password` contiene un hash similar a:
+
+```text
+$2b$10$...
+```
+
+La contraseña almacenada nunca debe coincidir con la contraseña enviada originalmente.
 
 ## Variables de entorno
 
@@ -164,7 +337,7 @@ Respuesta esperada:
 | `PORT` | Puerto en el que se ejecuta el servidor |
 | `NODE_ENV` | Entorno de ejecución del proyecto |
 | `MONGO_URL` | Dirección de conexión a MongoDB |
-| `JWT_SECRET` | Clave que se utilizará para trabajar con JWT |
+| `JWT_SECRET` | Clave que se utilizará posteriormente para trabajar con JWT |
 
 ## Scripts disponibles
 
