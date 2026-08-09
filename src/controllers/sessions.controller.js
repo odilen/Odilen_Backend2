@@ -42,14 +42,14 @@ export const login = async (req, res) => {
       email: normalizedEmail
     })
     if (!user) {
-      const error = new Error('Usuario no encontrado')
+      const error = new Error('Credenciales inválidas')
       error.statusCode = 401
       throw error
     }
         const validPassword = await isValidPassword(password, user.password) //comparo pswd ingresada n texto plano con la guardada en la base de datos hasheada
 
     if (!validPassword) {
-      const error = new Error('Contraseña incorrecta')
+      const error = new Error('Credenciales inválidas')
       error.statusCode = 401
       throw error
     }
@@ -60,11 +60,17 @@ export const login = async (req, res) => {
       role: user.role
     }
     const token = generateToken(tokenUser)
+    res.cookie('currentUser', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 3600000,
+      secure: process.env.NODE_ENV === 'production'
+    })
 
 
     return res.status(200).json({
       status: 'success',
-      payload: token
+      message: 'Login correcto'
     })
 
   } catch (error) {
@@ -73,4 +79,28 @@ export const login = async (req, res) => {
       message: error.message || 'Error interno del servidor'
     })
   } 
+}
+
+export const current = (req, res) => {
+  return res.status(200).json({
+    status: 'success',
+    payload: {
+      id: req.user.id,
+      email: req.user.email,
+      role: req.user.role
+    }
+  })
+}
+
+export const logout = (req, res) => {
+  res.clearCookie('currentUser', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
+  })
+
+  return res.status(200).json({
+    status: 'success',
+    message: 'Sesión cerrada'
+  })
 }

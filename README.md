@@ -330,6 +330,162 @@ $2b$10$...
 
 La contraseña almacenada nunca debe coincidir con la contraseña enviada originalmente.
 
+## Autenticación con JWT y cookies
+
+El sistema utiliza JWT (JSON Web Token) para autenticar usuarios.
+
+Cuando un usuario inicia sesión correctamente, el servidor genera un JWT y lo almacena en una cookie HTTP Only llamada `currentUser`.
+
+La cookie se configura con:
+
+- `httpOnly: true`
+- `sameSite: 'lax'`
+- `maxAge: 3600000` (1 hora)
+- `secure: true` únicamente en producción
+
+El token contiene únicamente:
+
+- `id`
+- `email`
+- `role`
+
+La contraseña nunca se almacena dentro del JWT.
+
+### Rutas de autenticación
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/api/sessions/register` | Registra un nuevo usuario |
+| POST | `/api/sessions/login` | Autentica al usuario y genera la cookie JWT |
+| GET | `/api/sessions/current` | Devuelve el usuario actualmente autenticado |
+| POST | `/api/sessions/logout` | Cierra la sesión y elimina la cookie |
+
+### Registrar usuario
+
+```http
+POST /api/sessions/register
+```
+
+Request:
+
+```json
+{
+  "first_name": "Ana",
+  "last_name": "Pérez",
+  "email": "ana@mail.com",
+  "password": "Secreta123"
+}
+```
+
+Response `201 Created`:
+
+```json
+{
+  "status": "success",
+  "payload": {
+    "id": "665f2a...",
+    "first_name": "Ana",
+    "last_name": "Pérez",
+    "email": "ana@mail.com",
+    "role": "user"
+  }
+}
+```
+
+La contraseña se almacena hasheada utilizando bcrypt y nunca se devuelve en la respuesta.
+
+### Login
+
+```http
+POST /api/sessions/login
+```
+
+Request:
+
+```json
+{
+  "email": "ana@mail.com",
+  "password": "Secreta123"
+}
+```
+
+Response `200 OK`:
+
+```json
+{
+  "status": "success",
+  "message": "Login correcto"
+}
+```
+
+Además, el servidor crea la cookie HTTP Only `currentUser` con el JWT.
+
+Si el email no existe o la contraseña es incorrecta:
+
+Response `401 Unauthorized`:
+
+```json
+{
+  "status": "error",
+  "message": "Credenciales inválidas"
+}
+```
+
+Por seguridad, la API no informa si el error corresponde al email o a la contraseña.
+
+### Usuario autenticado
+
+```http
+GET /api/sessions/current
+```
+
+Esta ruta está protegida por el middleware `auth`.
+
+El middleware obtiene el JWT desde la cookie `currentUser`, verifica su firma y expiración y guarda el payload en `req.user`.
+
+Response `200 OK`:
+
+```json
+{
+  "status": "success",
+  "payload": {
+    "id": "665f2a...",
+    "email": "ana@mail.com",
+    "role": "user"
+  }
+}
+```
+
+Si no existe la cookie o el token es inválido o expiró:
+
+Response `401 Unauthorized`:
+
+```json
+{
+  "status": "error",
+  "message": "No autenticado"
+}
+```
+
+### Logout
+
+```http
+POST /api/sessions/logout
+```
+
+El endpoint elimina la cookie `currentUser`.
+
+Response `200 OK`:
+
+```json
+{
+  "status": "success",
+  "message": "Sesión cerrada"
+}
+```
+
+Después del logout, una nueva petición a `/api/sessions/current` devuelve `401 Unauthorized`.
+
 ## Variables de entorno
 
 | Variable | Descripción |
@@ -338,6 +494,7 @@ La contraseña almacenada nunca debe coincidir con la contraseña enviada origin
 | `NODE_ENV` | Entorno de ejecución del proyecto |
 | `MONGO_URL` | Dirección de conexión a MongoDB |
 | `JWT_SECRET` | Clave que se utilizará posteriormente para trabajar con JWT |
+| `JWT_EXPIRES_IN` | Tiempo de expiración del JWT, por ejemplo `1h` |
 
 ## Scripts disponibles
 
