@@ -2,7 +2,7 @@ import passport from 'passport'
 import { Strategy as LocalStrategy } from 'passport-local'
 
 import usersRepository from '../repositories/users.repository.js'
-import { createHash } from '../utils/hash.js'
+import { createHash, isValidPassword } from '../utils/hash.js'
 
 export const initializePassport = () => {
   passport.use(
@@ -68,6 +68,50 @@ export const initializePassport = () => {
           }
 
           return done(null, userResponse)
+        } catch (error) {
+          return done(error)
+        }
+      }
+    )
+  )
+    passport.use(
+    'login',
+    new LocalStrategy(
+      {
+        usernameField: 'email',
+        passwordField: 'password'
+      },
+      async (email, password, done) => {
+        try {
+          const normalizedEmail = email.trim().toLowerCase()
+
+          const user =
+            await usersRepository.getByEmail(normalizedEmail)
+
+          if (!user) {
+            const error = new Error('Credenciales inválidas')
+            error.statusCode = 401
+            return done(error)
+          }
+
+          const validPassword = await isValidPassword(
+            password,
+            user.password
+          )
+
+          if (!validPassword) {
+            const error = new Error('Credenciales inválidas')
+            error.statusCode = 401
+            return done(error)
+          }
+
+          const authenticatedUser = {
+            id: user._id,
+            email: user.email,
+            role: user.role
+          }
+
+          return done(null, authenticatedUser)
         } catch (error) {
           return done(error)
         }

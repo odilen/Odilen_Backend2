@@ -17,7 +17,11 @@ router.post(
   passport.authenticate('register', { session: false }),
   registerUser
 )
-router.post('/login', login)
+router.post(
+  '/login',
+  passport.authenticate('login', { session: false }),
+  login
+)
 router.get('/current', auth, current)
 router.post('/logout', logout)
 
