@@ -6,10 +6,27 @@ import {
   current,
   logout
 } from '../controllers/sessions.controller.js'
-import { auth } from '../middlewares/auth.middleware.js'
 import passport from 'passport'
 
 const router = Router()
+
+const authenticateCurrent = (req, res, next) => {
+  passport.authenticate(
+    'current',
+    { session: false },
+    (error, user) => {
+      if (error || !user) {
+        return res.status(401).json({
+          status: 'error',
+          message: 'No autenticado'
+        })
+      }
+
+      req.user = user
+      next()
+    }
+  )(req, res, next)
+}
 
 router.get('/', getSessionStatus)
 router.post(
@@ -22,7 +39,7 @@ router.post(
   passport.authenticate('login', { session: false }),
   login
 )
-router.get('/current', auth, current)
+router.get('/current', authenticateCurrent, current)
 router.post('/logout', logout)
 
 
