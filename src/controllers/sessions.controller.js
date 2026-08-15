@@ -1,4 +1,3 @@
-import sessionsService from '../services/sessions.service.js'
 import {generateToken} from '../utils/jwt.js'
 import { isValidPassword } from '../utils/hash.js'
 import UserModel from '../models/user.model.js'
@@ -9,21 +8,11 @@ export const getSessionStatus = (req, res) => {
     message: 'Ruta de sesiones disponible'
   })
 }
-
-export const registerUser = async (req, res) => {
-  try {
-    const user = await sessionsService.registerUser(req.body)
-
-    return res.status(201).json({
-      status: 'success',
-      payload: user
-    })
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({
-      status: 'error',
-      message: error.message || 'Error interno del servidor'
-    })
-  }
+export const registerUser = (req, res) => {
+  return res.status(201).json({
+    status: 'success',
+    payload: req.user
+  })
 }
 
 export const login = async (req, res) => {
