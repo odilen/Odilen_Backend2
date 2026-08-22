@@ -7,26 +7,11 @@ import {
   logout
 } from '../controllers/sessions.controller.js'
 import passport from 'passport'
+import { authenticate } from '../middlewares/auth.middleware.js'
 
 const router = Router()
 
-const authenticateCurrent = (req, res, next) => {
-  passport.authenticate(
-    'current',
-    { session: false },
-    (error, user) => {
-      if (error || !user) {
-        return res.status(401).json({
-          status: 'error',
-          message: 'No autenticado'
-        })
-      }
 
-      req.user = user
-      next()
-    }
-  )(req, res, next)
-}
 
 router.get('/', getSessionStatus)
 router.post(
@@ -39,7 +24,7 @@ router.post(
   passport.authenticate('login', { session: false }),
   login
 )
-router.get('/current', authenticateCurrent, current)
+router.get('/current', authenticate, current)
 router.post('/logout', logout)
 
 

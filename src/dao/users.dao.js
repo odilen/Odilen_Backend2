@@ -9,6 +9,13 @@ class UsersDao {
     const newUser = new User(userData)
     return await newUser.save()
   }
+
+async getAllUsers() {
+  return await User.find().select('-password')
 }
+
+}
+
+
 
 export default new UsersDao()

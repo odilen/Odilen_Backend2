@@ -9,6 +9,10 @@ class UsersRepository {
     async create(userData) {
         return await usersDAO.createUser(userData);
     }
+
+    async getAll() {
+        return await usersDAO.getAllUsers()
+    }
 }
 
 export default new UsersRepository();

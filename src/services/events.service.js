@@ -30,6 +30,14 @@ class EventsService {
 
     return newEvent.toObject ? newEvent.toObject() : newEvent
   }
+  async updateEvent(id, eventData) {
+    const event = await eventsRepository.update(id, eventData)
+
+    return event
+  }
+  async getEventById(id) {
+    return await eventsRepository.getById(id)
+  }
 }
 
 export default new EventsService()
