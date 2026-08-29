@@ -1,94 +1,119 @@
 import eventsService from '../services/events.service.js'
 
+const sendErrorResponse = (
+  res,
+  error,
+  defaultMessage
+) => {
+  console.error(defaultMessage, error)
+
+  if (error.name === 'CastError') {
+    return res.status(400).json({
+      status: 'error',
+      message: 'El ID del evento no es válido'
+    })
+  }
+
+  return res.status(error.statusCode || 500).json({
+    status: 'error',
+    message: error.message || defaultMessage
+  })
+}
+
 export const getEvents = async (req, res) => {
   try {
-    const events = await eventsService.getAllEvents()
+    const result = await eventsService.getAllEvents(
+      req.query
+    )
+
+    return res.status(200).json(result)
+  } catch (error) {
+    return sendErrorResponse(
+      res,
+      error,
+      'Error al obtener eventos'
+    )
+  }
+}
+
+export const getEventById = async (req, res) => {
+  try {
+    const event = await eventsService.getEventById(
+      req.params.id
+    )
 
     return res.status(200).json({
       status: 'success',
-      payload: events
+      data: event
     })
   } catch (error) {
-    console.error('Error al obtener eventos:', error)
-
-    return res.status(500).json({
-      status: 'error',
-      error: 'Error al obtener eventos'
-    })
+    return sendErrorResponse(
+      res,
+      error,
+      'Error al obtener el evento'
+    )
   }
 }
 
 export const createEvent = async (req, res) => {
   try {
-    const eventData = {
-      ...req.body,
-      organizerEmail: req.user.email
-    }
-
-    const newEvent = await eventsService.createEvent(eventData)
+    const newEvent = await eventsService.createEvent(
+      req.body,
+      req.user.id
+    )
 
     return res.status(201).json({
       status: 'success',
-      payload: newEvent
+      data: newEvent
     })
   } catch (error) {
-    console.error('Error al crear evento:', error)
-
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({
-        status: 'error',
-        message: error.message
-      })
-    }
-
-    return res.status(500).json({
-      status: 'error',
-      message: 'Error al crear evento'
-    })
+    return sendErrorResponse(
+      res,
+      error,
+      'Error al crear el evento'
+    )
   }
 }
+
 export const updateEvent = async (req, res) => {
   try {
-    const eventId = req.params.id
-
-    const event = await eventsService.getEventById(eventId)
-
-    if (!event) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Evento no encontrado'
-      })
-    }
-
-    if (
-      req.user.role === 'organizer' &&
-      event.organizerEmail !== req.user.email
-    ) {
-      return res.status(403).json({
-        status: 'error',
-        message: 'Solo podés modificar tus propios eventos'
-      })
-    }
-
-    const eventData = {
-      ...req.body,
-      organizerEmail: event.organizerEmail
-    }
-
     const updatedEvent = await eventsService.updateEvent(
-      eventId,
-      eventData
+      req.params.id,
+      req.body,
+      req.user
     )
 
     return res.status(200).json({
       status: 'success',
-      payload: updatedEvent
+      data: updatedEvent
     })
-
   } catch (error) {
-    return res.status(500).json({
-      status: 'error',
-      message: 'Error al modificar evento'
+    return sendErrorResponse(
+      res,
+      error,
+      'Error al modificar el evento'
+    )
+  }
+}
+
+export const updateEventStatus = async (req, res) => {
+  try {
+    const updatedEvent =
+      await eventsService.updateEventStatus(
+        req.params.id,
+        req.body.status,
+        req.user
+      )
+
+    return res.status(200).json({
+      status: 'success',
+      data: updatedEvent
     })
+  } catch (error) {
+    return sendErrorResponse(
+      res,
+      error,
+      'Error al cambiar el estado del evento'
+    )
   }
 }
