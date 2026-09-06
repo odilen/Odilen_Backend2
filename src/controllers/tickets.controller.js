@@ -24,7 +24,7 @@ export const createTicket = async (req, res) => {
   try {
     const newTicket = await ticketsService.createTicket(
       req.params.eid,
-      req.user.id,
+      req.user,
       req.body.quantity
     )
 

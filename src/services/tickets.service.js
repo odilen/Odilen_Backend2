@@ -7,9 +7,10 @@ import {
   ForbiddenError,
   NotFoundError
 } from '../utils/errors.js'
+import mailService from './mail.service.js'
 
 class TicketsService {
-  async createTicket(eventId, userId, quantity) {
+  async createTicket(eventId, user, quantity) {
     const event = await eventsRepository.getById(eventId)
 
     if (!event) {
@@ -50,7 +51,7 @@ class TicketsService {
 
     const activeTicket =
       await ticketsRepository.getActiveByUserAndEvent(
-        userId,
+        user.id,
         eventId
       )
 
@@ -74,16 +75,24 @@ class TicketsService {
 
     const reservationCode = randomUUID()
 
-    return await ticketsRepository.create({
-      user: userId,
+    const ticket = await ticketsRepository.create({
+      user: user.id,
       event: eventId,
       quantity: quantityNumber,
       status: 'confirmed',
       reservationCode
     })
+
+    await mailService.sendTicketConfirmation(
+      user.email,
+      event,
+      ticket
+    )
+
+    return ticket
   }
-    async getMyTickets(userId) {
-    return await ticketsRepository.getByUser(userId)
+  async getMyTickets(user) {
+    return await ticketsRepository.getByUser(user.id)
   }
 
   async getEventTickets(eventId, user) {
