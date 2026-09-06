@@ -1,7 +1,8 @@
 import { Router } from 'express'
 
 import {
-  getMyTickets
+  getMyTickets,
+  cancelTicket
 } from '../controllers/tickets.controller.js'
 import {
   authenticate
@@ -13,6 +14,12 @@ router.get(
   '/my-tickets',
   authenticate,
   getMyTickets
+)
+
+router.patch(
+  '/:tid/cancel',
+  authenticate,
+  cancelTicket
 )
 
 export default router

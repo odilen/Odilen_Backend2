@@ -80,3 +80,24 @@ export const getEventTickets = async (req, res) => {
     )
   }
 }
+export const cancelTicket = async (req, res) => {
+  try {
+    const cancelledTicket =
+      await ticketsService.cancelTicket(
+        req.params.tid,
+        req.user
+      )
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Inscripción cancelada correctamente',
+      data: cancelledTicket
+    })
+  } catch (error) {
+    return sendErrorResponse(
+      res,
+      error,
+      'Error al cancelar la inscripción'
+    )
+  }
+}

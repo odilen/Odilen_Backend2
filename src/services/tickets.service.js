@@ -106,6 +106,40 @@ class TicketsService {
 
     return await ticketsRepository.getByEvent(eventId)
   }
+    async cancelTicket(ticketId, user) {
+    const ticket = await ticketsRepository.getById(
+      ticketId
+    )
+
+    if (!ticket) {
+      throw new NotFoundError('Ticket no encontrado')
+    }
+
+    const isAdmin = user.role === 'admin'
+
+    const isOwner =
+      ticket.user.toString() === user.id.toString()
+
+    if (!isAdmin && !isOwner) {
+      throw new ForbiddenError(
+        'No podés cancelar el ticket de otro usuario'
+      )
+    }
+
+    if (ticket.status === 'cancelled') {
+      throw new ValidationError(
+        'El ticket ya está cancelado'
+      )
+    }
+
+    return await ticketsRepository.update(
+      ticketId,
+      {
+        status: 'cancelled',
+        cancelledAt: new Date()
+      }
+    )
+  }
 }
 
 export default new TicketsService()
