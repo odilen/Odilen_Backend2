@@ -6,6 +6,7 @@ import eventsRouter from './routes/events.routes.js'
 import sessionsRouter from './routes/sessions.routes.js'
 import { initializePassport } from './config/passport.config.js'
 import usersRouter from './routes/users.routes.js'
+import ticketsRouter from './routes/tickets.routes.js'
 
 const app = express()
 
@@ -24,6 +25,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/events', eventsRouter)
 app.use('/api/sessions', sessionsRouter)
 app.use('/api/users', usersRouter)
+app.use('/api/tickets', ticketsRouter)
 
 app.use((error, req, res, next) => {
   return res.status(error.statusCode || 500).json({
@@ -31,5 +33,7 @@ app.use((error, req, res, next) => {
     message: error.message || 'Error interno del servidor'
   })
 })
+
+
 
 export default app

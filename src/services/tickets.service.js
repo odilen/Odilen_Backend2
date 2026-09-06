@@ -4,6 +4,7 @@ import ticketsRepository from '../repositories/tickets.repository.js'
 import eventsRepository from '../repositories/events.repository.js'
 import {
   ValidationError,
+  ForbiddenError,
   NotFoundError
 } from '../utils/errors.js'
 
@@ -80,6 +81,30 @@ class TicketsService {
       status: 'confirmed',
       reservationCode
     })
+  }
+    async getMyTickets(userId) {
+    return await ticketsRepository.getByUser(userId)
+  }
+
+  async getEventTickets(eventId, user) {
+    const event = await eventsRepository.getById(eventId)
+
+    if (!event) {
+      throw new NotFoundError('Evento no encontrado')
+    }
+
+    const isAdmin = user.role === 'admin'
+
+    const isOwner =
+      event.organizer.toString() === user.id.toString()
+
+    if (!isAdmin && !isOwner) {
+      throw new ForbiddenError(
+        'Solo podés consultar los tickets de tus propios eventos'
+      )
+    }
+
+    return await ticketsRepository.getByEvent(eventId)
   }
 }
 

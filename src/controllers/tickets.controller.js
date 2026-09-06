@@ -41,3 +41,42 @@ export const createTicket = async (req, res) => {
     )
   }
 }
+export const getMyTickets = async (req, res) => {
+  try {
+    const tickets = await ticketsService.getMyTickets(
+      req.user.id
+    )
+
+    return res.status(200).json({
+      status: 'success',
+      data: tickets
+    })
+  } catch (error) {
+    return sendErrorResponse(
+      res,
+      error,
+      'Error al obtener tus tickets'
+    )
+  }
+}
+
+export const getEventTickets = async (req, res) => {
+  try {
+    const tickets =
+      await ticketsService.getEventTickets(
+        req.params.eid,
+        req.user
+      )
+
+    return res.status(200).json({
+      status: 'success',
+      data: tickets
+    })
+  } catch (error) {
+    return sendErrorResponse(
+      res,
+      error,
+      'Error al obtener los tickets del evento'
+    )
+  }
+}

@@ -13,7 +13,8 @@ import {
   authorizedRoles
 } from '../middlewares/authorizedRoles.middleware.js'
 import {
-  createTicket
+  createTicket,
+  getEventTickets
 } from '../controllers/tickets.controller.js'
 
 const router = Router()
@@ -24,6 +25,12 @@ router.post(
   '/:eid/tickets',
   authenticate,
   createTicket
+)
+router.get(
+  '/:eid/tickets',
+  authenticate,
+  authorizedRoles('organizer', 'admin'),
+  getEventTickets
 )
 
 router.get('/:id', getEventById)
