@@ -91,8 +91,8 @@ class TicketsService {
 
     return ticket
   }
-  async getMyTickets(user) {
-    return await ticketsRepository.getByUser(user.id)
+  async getMyTickets(userId) {
+    return await ticketsRepository.getByUser(userId)
   }
 
   async getEventTickets(eventId, user) {
