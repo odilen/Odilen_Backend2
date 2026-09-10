@@ -1,19 +1,19 @@
-export const authorizedRoles = (...roles) => {/*los ... significa que se puede pasar un número variable de argumentos */
-  
-return (req, res, next) => {
-
-    if(!req.user) {
-      return res.status(401).json({ 
+export const authorizedRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
         status: 'error',
-        message: 'User not authenticated'
-       })
+        message: 'No autenticado'
+      })
     }
-    if(!roles.includes(req.user.role)){
-        return res.status(403).json({
-          status: 'error',
-          message: 'Access denied'
-        })
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'No tenés permisos para realizar esta acción'
+      })
     }
+
     next()
   }
 }
