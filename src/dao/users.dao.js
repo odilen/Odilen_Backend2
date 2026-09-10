@@ -5,17 +5,18 @@ class UsersDao {
     return await User.findOne({ email })
   }
 
+  async findById(id) {
+    return await User.findById(id)
+  }
+
   async createUser(userData) {
     const newUser = new User(userData)
     return await newUser.save()
   }
 
-async getAllUsers() {
-  return await User.find().select('-password')
+  async getAllUsers() {
+    return await User.find().select('-password')
+  }
 }
-
-}
-
-
 
 export default new UsersDao()
