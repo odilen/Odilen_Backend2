@@ -10,7 +10,7 @@ export const getSessionStatus = (req, res) => {
 export const registerUser = (req, res) => {
   return res.status(201).json({
     status: 'success',
-    payload: req.user
+    payload: userDTO(req.user)
   })
 }
 export const login = (req, res) => {
