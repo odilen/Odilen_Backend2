@@ -1,27 +1,7 @@
 import ticketsService from '../services/tickets.service.js'
 import { ticketDTO } from '../dto/ticket.dto.js'
 
-const sendErrorResponse = (
-  res,
-  error,
-  defaultMessage
-) => {
-  console.error(defaultMessage, error)
-
-  if (error.name === 'CastError') {
-    return res.status(400).json({
-      status: 'error',
-      message: 'El ID no es válido'
-    })
-  }
-
-  return res.status(error.statusCode || 500).json({
-    status: 'error',
-    message: error.message || defaultMessage
-  })
-}
-
-export const createTicket = async (req, res) => {
+export const createTicket = async (req, res, next) => {
   try {
     const newTicket = await ticketsService.createTicket(
       req.params.eid,
@@ -35,14 +15,11 @@ export const createTicket = async (req, res) => {
       data: ticketDTO(newTicket)
     })
   } catch (error) {
-    return sendErrorResponse(
-      res,
-      error,
-      'Error al realizar la inscripción'
-    )
+    next(error)
   }
 }
-export const getMyTickets = async (req, res) => {
+
+export const getMyTickets = async (req, res, next) => {
   try {
     const tickets = await ticketsService.getMyTickets(
       req.user.id
@@ -53,15 +30,11 @@ export const getMyTickets = async (req, res) => {
       data: tickets.map(ticket => ticketDTO(ticket))
     })
   } catch (error) {
-    return sendErrorResponse(
-      res,
-      error,
-      'Error al obtener tus tickets'
-    )
+    next(error)
   }
 }
 
-export const getEventTickets = async (req, res) => {
+export const getEventTickets = async (req, res, next) => {
   try {
     const tickets =
       await ticketsService.getEventTickets(
@@ -74,14 +47,11 @@ export const getEventTickets = async (req, res) => {
       data: tickets.map(ticket => ticketDTO(ticket))
     })
   } catch (error) {
-    return sendErrorResponse(
-      res,
-      error,
-      'Error al obtener los tickets del evento'
-    )
+    next(error)
   }
 }
-export const cancelTicket = async (req, res) => {
+
+export const cancelTicket = async (req, res, next) => {
   try {
     const cancelledTicket =
       await ticketsService.cancelTicket(
@@ -95,10 +65,6 @@ export const cancelTicket = async (req, res) => {
       data: ticketDTO(cancelledTicket)
     })
   } catch (error) {
-    return sendErrorResponse(
-      res,
-      error,
-      'Error al cancelar la inscripción'
-    )
+    next(error)
   }
 }

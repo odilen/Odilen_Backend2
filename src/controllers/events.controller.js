@@ -1,27 +1,7 @@
 import eventsService from '../services/events.service.js'
 import { eventDTO } from '../dto/event.dto.js'
 
-const sendErrorResponse = (
-  res,
-  error,
-  defaultMessage
-) => {
-  console.error(defaultMessage, error)
-
-  if (error.name === 'CastError') {
-    return res.status(400).json({
-      status: 'error',
-      message: 'El ID del evento no es válido'
-    })
-  }
-
-  return res.status(error.statusCode || 500).json({
-    status: 'error',
-    message: error.message || defaultMessage
-  })
-}
-
-export const getEvents = async (req, res) => {
+export const getEvents = async (req, res, next) => {
   try {
     const result = await eventsService.getAllEvents(
       req.query
@@ -32,15 +12,11 @@ export const getEvents = async (req, res) => {
       data: result.data.map(event => eventDTO(event))
     })
   } catch (error) {
-    return sendErrorResponse(
-      res,
-      error,
-      'Error al obtener eventos'
-    )
+    next(error)
   }
 }
 
-export const getEventById = async (req, res) => {
+export const getEventById = async (req, res, next) => {
   try {
     const event = await eventsService.getEventById(
       req.params.id
@@ -51,15 +27,11 @@ export const getEventById = async (req, res) => {
       data: eventDTO(event)
     })
   } catch (error) {
-    return sendErrorResponse(
-      res,
-      error,
-      'Error al obtener el evento'
-    )
+    next(error)
   }
 }
 
-export const createEvent = async (req, res) => {
+export const createEvent = async (req, res, next) => {
   try {
     const newEvent = await eventsService.createEvent(
       req.body,
@@ -71,15 +43,11 @@ export const createEvent = async (req, res) => {
       data: eventDTO(newEvent)
     })
   } catch (error) {
-    return sendErrorResponse(
-      res,
-      error,
-      'Error al crear el evento'
-    )
+    next(error)
   }
 }
 
-export const updateEvent = async (req, res) => {
+export const updateEvent = async (req, res, next) => {
   try {
     const updatedEvent = await eventsService.updateEvent(
       req.params.id,
@@ -92,15 +60,11 @@ export const updateEvent = async (req, res) => {
       data: eventDTO(updatedEvent)
     })
   } catch (error) {
-    return sendErrorResponse(
-      res,
-      error,
-      'Error al modificar el evento'
-    )
+    next(error)
   }
 }
 
-export const updateEventStatus = async (req, res) => {
+export const updateEventStatus = async (req, res, next) => {
   try {
     const updatedEvent =
       await eventsService.updateEventStatus(
@@ -111,13 +75,9 @@ export const updateEventStatus = async (req, res) => {
 
     return res.status(200).json({
       status: 'success',
-      data: updatedEvent
+      data: eventDTO(updatedEvent)
     })
   } catch (error) {
-    return sendErrorResponse(
-      res,
-      error,
-      'Error al cambiar el estado del evento'
-    )
+    next(error)
   }
 }

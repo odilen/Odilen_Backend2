@@ -28,6 +28,13 @@ app.use('/api/users', usersRouter)
 app.use('/api/tickets', ticketsRouter)
 
 app.use((error, req, res, next) => {
+  if (error.name === 'CastError') {
+    return res.status(400).json({
+      status: 'error',
+      message: 'El ID no es válido'
+    })
+  }
+
   return res.status(error.statusCode || 500).json({
     status: 'error',
     message: error.message || 'Error interno del servidor'
