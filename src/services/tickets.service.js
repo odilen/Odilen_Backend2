@@ -63,7 +63,7 @@ class TicketsService {
     }
 
     const reservedQuantity =
-      await ticketsRepository.getReservedQuantity(eventId)
+      await ticketsRepository.countActiveTickets(eventId)
 
     const availableQuantity =
       event.capacity - reservedQuantity

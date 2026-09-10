@@ -12,7 +12,7 @@ class TicketsRepository {
     )
   }
 
-  async getReservedQuantity(eventId) {
+  async countActiveTickets(eventId) {
     return await ticketsDAO.getReservedQuantity(eventId)
   }
 

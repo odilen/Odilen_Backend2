@@ -22,13 +22,13 @@ class EventsRepository {
     return await eventsDAO.updateEvent(id, eventData)
   }
   async getPublishedEvents(page, limit, sort) {
-  return await eventsDAO.getAllEvents(
-    { status: 'published' },
-    page,
-    limit,
-    sort
-  )
-}
+    return await eventsDAO.getAllEvents(
+      { status: 'published' },
+      page,
+      limit,
+      sort
+    )
+  }
 }
 
 export default new EventsRepository()
