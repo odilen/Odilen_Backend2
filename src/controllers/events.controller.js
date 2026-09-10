@@ -1,4 +1,5 @@
 import eventsService from '../services/events.service.js'
+import { eventDTO } from '../dto/event.dto.js'
 
 const sendErrorResponse = (
   res,
@@ -26,7 +27,10 @@ export const getEvents = async (req, res) => {
       req.query
     )
 
-    return res.status(200).json(result)
+    return res.status(200).json({
+      ...result,
+      data: result.data.map(event => eventDTO(event))
+    })
   } catch (error) {
     return sendErrorResponse(
       res,
@@ -44,7 +48,7 @@ export const getEventById = async (req, res) => {
 
     return res.status(200).json({
       status: 'success',
-      data: event
+      data: eventDTO(event)
     })
   } catch (error) {
     return sendErrorResponse(
@@ -64,7 +68,7 @@ export const createEvent = async (req, res) => {
 
     return res.status(201).json({
       status: 'success',
-      data: newEvent
+      data: eventDTO(newEvent)
     })
   } catch (error) {
     return sendErrorResponse(
@@ -85,7 +89,7 @@ export const updateEvent = async (req, res) => {
 
     return res.status(200).json({
       status: 'success',
-      data: updatedEvent
+      data: eventDTO(updatedEvent)
     })
   } catch (error) {
     return sendErrorResponse(
