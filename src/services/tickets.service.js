@@ -5,7 +5,8 @@ import eventsRepository from '../repositories/events.repository.js'
 import {
   ValidationError,
   ForbiddenError,
-  NotFoundError
+  NotFoundError,
+  ConflictError
 } from '../utils/errors.js'
 import mailService from './mail.service.js'
 
@@ -56,7 +57,7 @@ class TicketsService {
       )
 
     if (activeTicket) {
-      throw new ValidationError(
+      throw new ConflictError(
         'Ya tenés una inscripción activa para este evento'
       )
     }
@@ -115,7 +116,7 @@ class TicketsService {
 
     return await ticketsRepository.getByEvent(eventId)
   }
-    async cancelTicket(ticketId, user) {
+  async cancelTicket(ticketId, user) {
     const ticket = await ticketsRepository.getById(
       ticketId
     )
@@ -136,7 +137,7 @@ class TicketsService {
     }
 
     if (ticket.status === 'cancelled') {
-      throw new ValidationError(
+      throw new ConflictError(
         'El ticket ya está cancelado'
       )
     }
