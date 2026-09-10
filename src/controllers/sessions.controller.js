@@ -1,4 +1,5 @@
 import {generateToken} from '../utils/jwt.js'
+import { userDTO } from '../dto/user.dto.js'
 
 export const getSessionStatus = (req, res) => {
   return res.status(200).json({
@@ -38,11 +39,7 @@ export const login = (req, res) => {
 export const current = (req, res) => {
   return res.status(200).json({
     status: 'success',
-    payload: {
-      id: req.user.id,
-      email: req.user.email,
-      role: req.user.role
-    }
+    payload: userDTO(req.user)
   })
 }
 
