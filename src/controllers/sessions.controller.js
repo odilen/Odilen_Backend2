@@ -1,4 +1,4 @@
-import {generateToken} from '../utils/jwt.js'
+import { generateToken } from '../utils/jwt.js'
 import { userDTO } from '../dto/user.dto.js'
 
 export const getSessionStatus = (req, res) => {
@@ -7,13 +7,15 @@ export const getSessionStatus = (req, res) => {
     message: 'Ruta de sesiones disponible'
   })
 }
+
 export const registerUser = (req, res) => {
   return res.status(201).json({
     status: 'success',
     payload: userDTO(req.user)
   })
 }
-export const login = (req, res) => {
+
+export const login = (req, res, next) => {
   try {
     const token = generateToken(req.user)
 
@@ -29,10 +31,7 @@ export const login = (req, res) => {
       message: 'Login correcto'
     })
   } catch (error) {
-    return res.status(500).json({
-      status: 'error',
-      message: 'Error interno del servidor'
-    })
+    next(error)
   }
 }
 
