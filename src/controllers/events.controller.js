@@ -3,13 +3,15 @@ import { eventDTO } from '../dto/event.dto.js'
 
 export const getEvents = async (req, res, next) => {
   try {
-    const result = await eventsService.getAllEvents(
-      req.query
-    )
+    const result = await eventsService.getAllEvents(req.query)
 
     return res.status(200).json({
-      ...result,
-      data: result.data.map(event => eventDTO(event))
+      status: 'success',
+      data: result.data.map(event => eventDTO(event)),
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      totalPages: result.totalPages
     })
   } catch (error) {
     next(error)
@@ -18,9 +20,7 @@ export const getEvents = async (req, res, next) => {
 
 export const getEventById = async (req, res, next) => {
   try {
-    const event = await eventsService.getEventById(
-      req.params.id
-    )
+    const event = await eventsService.getEventById(req.params.id)
 
     return res.status(200).json({
       status: 'success',
@@ -66,12 +66,11 @@ export const updateEvent = async (req, res, next) => {
 
 export const updateEventStatus = async (req, res, next) => {
   try {
-    const updatedEvent =
-      await eventsService.updateEventStatus(
-        req.params.id,
-        req.body.status,
-        req.user
-      )
+    const updatedEvent = await eventsService.updateEventStatus(
+      req.params.id,
+      req.body.status,
+      req.user
+    )
 
     return res.status(200).json({
       status: 'success',

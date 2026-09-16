@@ -2,13 +2,14 @@ import { randomUUID } from 'node:crypto'
 
 import ticketsRepository from '../repositories/tickets.repository.js'
 import eventsRepository from '../repositories/events.repository.js'
+import mailService from './mail.service.js'
+
 import {
   ValidationError,
   ForbiddenError,
   NotFoundError,
   ConflictError
 } from '../utils/errors.js'
-import mailService from './mail.service.js'
 
 class TicketsService {
   async createTicket(eventId, user, quantity) {
@@ -28,15 +29,11 @@ class TicketsService {
     }
 
     if (event.status !== 'published') {
-      throw new ValidationError(
-        'El evento no está publicado'
-      )
+      throw new ValidationError('El evento no está publicado')
     }
 
     if (event.date <= new Date()) {
-      throw new ValidationError(
-        'El evento ya finalizó'
-      )
+      throw new ValidationError('El evento ya finalizó')
     }
 
     const quantityNumber = Number(quantity)
@@ -65,11 +62,10 @@ class TicketsService {
     const reservedQuantity =
       await ticketsRepository.countActiveTickets(eventId)
 
-    const availableQuantity =
-      event.capacity - reservedQuantity
+    const availableQuantity = event.capacity - reservedQuantity
 
     if (availableQuantity < quantityNumber) {
-      throw new ValidationError(
+      throw new ConflictError(
         `No hay cupos suficientes. Cupos disponibles: ${availableQuantity}`
       )
     }
@@ -92,6 +88,7 @@ class TicketsService {
 
     return ticket
   }
+
   async getMyTickets(userId) {
     return await ticketsRepository.getByUser(userId)
   }
@@ -104,7 +101,6 @@ class TicketsService {
     }
 
     const isAdmin = user.role === 'admin'
-
     const isOwner =
       event.organizer.toString() === user.id.toString()
 
@@ -116,17 +112,15 @@ class TicketsService {
 
     return await ticketsRepository.getByEvent(eventId)
   }
+
   async cancelTicket(ticketId, user) {
-    const ticket = await ticketsRepository.getById(
-      ticketId
-    )
+    const ticket = await ticketsRepository.getById(ticketId)
 
     if (!ticket) {
       throw new NotFoundError('Ticket no encontrado')
     }
 
     const isAdmin = user.role === 'admin'
-
     const isOwner =
       ticket.user.toString() === user.id.toString()
 
@@ -137,18 +131,13 @@ class TicketsService {
     }
 
     if (ticket.status === 'cancelled') {
-      throw new ConflictError(
-        'El ticket ya está cancelado'
-      )
+      throw new ConflictError('El ticket ya está cancelado')
     }
 
-    return await ticketsRepository.update(
-      ticketId,
-      {
-        status: 'cancelled',
-        cancelledAt: new Date()
-      }
-    )
+    return await ticketsRepository.update(ticketId, {
+      status: 'cancelled',
+      cancelledAt: new Date()
+    })
   }
 }
 
