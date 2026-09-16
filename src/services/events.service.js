@@ -1,4 +1,5 @@
 import eventsRepository from '../repositories/events.repository.js'
+
 import {
   ValidationError,
   ForbiddenError,
@@ -35,6 +36,17 @@ class EventsService {
     const filters = {}
 
     if (status) {
+      const allowedStatuses = [
+        'draft',
+        'published',
+        'cancelled',
+        'finished'
+      ]
+
+      if (!allowedStatuses.includes(status)) {
+        throw new ValidationError('El estado no es válido')
+      }
+
       filters.status = status
     }
 
@@ -53,7 +65,9 @@ class EventsService {
         const from = new Date(dateFrom)
 
         if (Number.isNaN(from.getTime())) {
-          throw new ValidationError('dateFrom no es una fecha válida')
+          throw new ValidationError(
+            'dateFrom no es una fecha válida'
+          )
         }
 
         filters.date.$gte = from
@@ -63,7 +77,9 @@ class EventsService {
         const to = new Date(dateTo)
 
         if (Number.isNaN(to.getTime())) {
-          throw new ValidationError('dateTo no es una fecha válida')
+          throw new ValidationError(
+            'dateTo no es una fecha válida'
+          )
         }
 
         filters.date.$lte = to
@@ -87,6 +103,12 @@ class EventsService {
       'capacity',
       'createdAt'
     ]
+
+    if (typeof sort !== 'string') {
+      throw new ValidationError(
+        'El campo de ordenamiento no es válido'
+      )
+    }
 
     const descending = sort.startsWith('-')
     const sortField = descending ? sort.slice(1) : sort
@@ -139,14 +161,31 @@ class EventsService {
       status = 'draft'
     } = payload || {}
 
+    const textFields = {
+      title,
+      description,
+      category,
+      location
+    }
+
+    for (const field in textFields) {
+      const value = textFields[field]
+
+      if (typeof value !== 'string' || !value.trim()) {
+        throw new ValidationError(
+          `${field} debe ser un texto y no puede estar vacío`
+        )
+      }
+    }
+
     if (
-      !title ||
-      !description ||
-      !category ||
       !date ||
-      !location ||
       capacity === undefined ||
-      price === undefined
+      capacity === null ||
+      capacity === '' ||
+      price === undefined ||
+      price === null ||
+      price === ''
     ) {
       throw new ValidationError(
         'Faltan campos obligatorios del evento'
@@ -156,12 +195,14 @@ class EventsService {
     const eventDate = new Date(date)
 
     if (Number.isNaN(eventDate.getTime())) {
-      throw new ValidationError('La fecha del evento no es válida')
+      throw new ValidationError(
+        'La fecha del evento no es válida'
+      )
     }
 
     if (eventDate <= new Date()) {
       throw new ValidationError(
-        'No se puede crear un evento con fecha pasada'
+        'La fecha del evento debe ser futura'
       )
     }
 
@@ -169,11 +210,11 @@ class EventsService {
     const priceNumber = Number(price)
 
     if (
-      !Number.isFinite(capacityNumber) ||
+      !Number.isInteger(capacityNumber) ||
       capacityNumber <= 0
     ) {
       throw new ValidationError(
-        'La capacidad debe ser mayor que 0'
+        'La capacidad debe ser un número entero mayor que 0'
       )
     }
 
@@ -221,6 +262,12 @@ class EventsService {
       )
     }
 
+    if (!payload || Object.keys(payload).length === 0) {
+      throw new ValidationError(
+        'Debés enviar los datos que querés modificar'
+      )
+    }
+
     const eventData = {}
 
     const textFields = [
@@ -237,7 +284,7 @@ class EventsService {
           !payload[field].trim()
         ) {
           throw new ValidationError(
-            `${field} no puede estar vacío`
+            `${field} debe ser un texto y no puede estar vacío`
           )
         }
 
@@ -246,6 +293,12 @@ class EventsService {
     }
 
     if (payload.date !== undefined) {
+      if (!payload.date) {
+        throw new ValidationError(
+          'La fecha del evento no es válida'
+        )
+      }
+
       const eventDate = new Date(payload.date)
 
       if (Number.isNaN(eventDate.getTime())) {
@@ -254,15 +307,30 @@ class EventsService {
         )
       }
 
+      if (eventDate <= new Date()) {
+        throw new ValidationError(
+          'La fecha del evento debe ser futura'
+        )
+      }
+
       eventData.date = eventDate
     }
 
     if (payload.capacity !== undefined) {
+      if (
+        payload.capacity === null ||
+        payload.capacity === ''
+      ) {
+        throw new ValidationError(
+          'La capacidad debe ser un número entero mayor que 0'
+        )
+      }
+
       const capacity = Number(payload.capacity)
 
-      if (!Number.isFinite(capacity) || capacity <= 0) {
+      if (!Number.isInteger(capacity) || capacity <= 0) {
         throw new ValidationError(
-          'La capacidad debe ser mayor que 0'
+          'La capacidad debe ser un número entero mayor que 0'
         )
       }
 
@@ -270,6 +338,15 @@ class EventsService {
     }
 
     if (payload.price !== undefined) {
+      if (
+        payload.price === null ||
+        payload.price === ''
+      ) {
+        throw new ValidationError(
+          'El precio debe ser mayor o igual que 0'
+        )
+      }
+
       const price = Number(payload.price)
 
       if (!Number.isFinite(price) || price < 0) {
@@ -279,6 +356,12 @@ class EventsService {
       }
 
       eventData.price = price
+    }
+
+    if (Object.keys(eventData).length === 0) {
+      throw new ValidationError(
+        'No se enviaron campos válidos para modificar'
+      )
     }
 
     return await eventsRepository.update(id, eventData)
@@ -310,7 +393,7 @@ class EventsService {
       newStatus === 'published' &&
       (
         event.status === 'finished' ||
-        event.date < new Date()
+        event.date <= new Date()
       )
     ) {
       throw new ValidationError(
