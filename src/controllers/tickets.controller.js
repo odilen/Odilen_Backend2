@@ -12,7 +12,7 @@ export const createTicket = async (req, res, next) => {
     return res.status(201).json({
       status: 'success',
       message: 'Inscripción realizada correctamente',
-      data: ticketDTO(newTicket)
+      payload: ticketDTO(newTicket)
     })
   } catch (error) {
     next(error)
@@ -36,11 +36,10 @@ export const getMyTickets = async (req, res, next) => {
 
 export const getEventTickets = async (req, res, next) => {
   try {
-    const tickets =
-      await ticketsService.getEventTickets(
-        req.params.eid,
-        req.user
-      )
+    const tickets = await ticketsService.getEventTickets(
+      req.params.eid,
+      req.user
+    )
 
     return res.status(200).json({
       status: 'success',
@@ -53,11 +52,10 @@ export const getEventTickets = async (req, res, next) => {
 
 export const cancelTicket = async (req, res, next) => {
   try {
-    const cancelledTicket =
-      await ticketsService.cancelTicket(
-        req.params.tid,
-        req.user
-      )
+    const cancelledTicket = await ticketsService.cancelTicket(
+      req.params.tid,
+      req.user
+    )
 
     return res.status(200).json({
       status: 'success',
