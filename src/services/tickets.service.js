@@ -70,23 +70,32 @@ class TicketsService {
       )
     }
 
-    const reservationCode = randomUUID()
-
     const ticket = await ticketsRepository.create({
       user: user.id,
       event: eventId,
       quantity: quantityNumber,
       status: 'confirmed',
-      reservationCode
+      reservationCode: randomUUID()
     })
 
-    await mailService.sendTicketConfirmation(
-      user.email,
-      event,
-      ticket
-    )
+    let emailSent = false
 
-    return ticket
+    try {
+      await mailService.sendTicketConfirmation(
+        user.email,
+        event,
+        ticket
+      )
+
+      emailSent = true
+    } catch {
+      emailSent = false
+    }
+
+    return {
+      ticket,
+      emailSent
+    }
   }
 
   async getMyTickets(userId) {

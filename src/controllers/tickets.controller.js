@@ -3,16 +3,21 @@ import { ticketDTO } from '../dto/ticket.dto.js'
 
 export const createTicket = async (req, res, next) => {
   try {
-    const newTicket = await ticketsService.createTicket(
+    const result = await ticketsService.createTicket(
       req.params.eid,
       req.user,
       req.body.quantity
     )
 
+    const message = result.emailSent
+      ? 'Inscripción realizada y correo de confirmación enviado'
+      : 'Inscripción realizada, pero no se pudo enviar el correo de confirmación'
+
     return res.status(201).json({
       status: 'success',
-      message: 'Inscripción realizada correctamente',
-      payload: ticketDTO(newTicket)
+      message,
+      emailSent: result.emailSent,
+      payload: ticketDTO(result.ticket)
     })
   } catch (error) {
     next(error)
